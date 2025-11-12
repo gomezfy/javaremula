@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test JAR Import</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+    <h1>Criar JAR de Teste</h1>
+    <button onclick="createTestJar()">Criar e Download JAR de Teste</button>
+    <pre id="log"></pre>
+
+    <script>
+        function log(msg) {
+            document.getElementById('log').textContent += msg + '\n';
+        }
+
+        async function createTestJar() {
+            log('Criando JAR de teste...');
+            
+            const zip = new JSZip();
+            
+            // Adicionar MANIFEST.MF
+            const manifest = `Manifest-Version: 1.0
+MIDlet-1: TestGame, , com.test.TestGame
+MIDlet-Name: Test Game
+MIDlet-Vendor: Test Vendor
+MIDlet-Version: 1.0.0
+MicroEdition-Profile: MIDP-2.0
+MicroEdition-Configuration: CLDC-1.1`;
+            
+            zip.folder('META-INF').file('MANIFEST.MF', manifest);
+            
+            // Adicionar um arquivo .class fake
+            zip.folder('com').folder('test').file('TestGame.class', 'fake class file');
+            
+            log('Gerando arquivo...');
+            const blob = await zip.generateAsync({type: 'blob'});
+            
+            log('Download iniciado...');
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'test-game.jar';
+            a.click();
+            
+            log('JAR de teste criado: test-game.jar');
+            log('Agora você pode importar este arquivo no emulador!');
+        }
+    </script>
+</body>
+</html>
