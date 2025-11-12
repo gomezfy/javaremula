@@ -113,18 +113,27 @@ export class JarParser {
   
   static saveGame(gameData) {
     try {
+      console.log('[JarParser] Getting saved games...')
       const games = this.getSavedGames()
+      console.log('[JarParser] Current games count:', games.length)
+      
       games.push(gameData)
+      console.log('[JarParser] Converting ArrayBuffer to Array for storage...')
       
       const gamesToSave = games.map(game => ({
         ...game,
         jarData: Array.from(new Uint8Array(game.jarData))
       }))
       
-      localStorage.setItem('imported_games', JSON.stringify(gamesToSave))
+      const jsonString = JSON.stringify(gamesToSave)
+      console.log('[JarParser] JSON size:', jsonString.length, 'bytes')
+      
+      localStorage.setItem('imported_games', jsonString)
+      console.log('[JarParser] Game saved successfully!')
       return true
     } catch (error) {
-      console.error('Erro ao salvar jogo:', error)
+      console.error('[JarParser] Error saving game:', error)
+      console.error('[JarParser] Error details:', error.message, error.stack)
       return false
     }
   }

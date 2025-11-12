@@ -11,9 +11,17 @@ function JarUpload({ onGameImported }) {
     const file = event.target.files[0]
     if (!file) return
 
+    console.log('[JarUpload] File selected:', file.name, 'Size:', file.size)
+
     if (!file.name.endsWith('.jar')) {
       setError('Por favor, selecione um arquivo .jar válido')
       setTimeout(() => setError(null), 3000)
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Arquivo muito grande! Máximo: 5MB')
+      setTimeout(() => setError(null), 5000)
       return
     }
 
@@ -22,25 +30,30 @@ function JarUpload({ onGameImported }) {
     setSuccess(null)
 
     try {
+      console.log('[JarUpload] Parsing JAR file...')
       const gameData = await JarParser.parseJar(file)
+      console.log('[JarUpload] JAR parsed:', gameData.name, 'ID:', gameData.id)
       
+      console.log('[JarUpload] Saving game to localStorage...')
       const saved = JarParser.saveGame(gameData)
+      console.log('[JarUpload] Save result:', saved)
       
       if (saved) {
         setSuccess(`${gameData.name} importado com sucesso!`)
         setTimeout(() => setSuccess(null), 3000)
         
         if (onGameImported) {
+          console.log('[JarUpload] Calling onGameImported callback')
           onGameImported(gameData)
         }
         
         event.target.value = ''
       } else {
-        throw new Error('Erro ao salvar jogo')
+        throw new Error('Erro ao salvar jogo - localStorage pode estar cheio')
       }
       
     } catch (err) {
-      console.error('Erro no upload:', err)
+      console.error('[JarUpload] Upload error:', err)
       setError(err.message || 'Erro ao processar arquivo JAR')
       setTimeout(() => setError(null), 5000)
     } finally {

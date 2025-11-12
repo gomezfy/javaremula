@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Import</title>
+</head>
+<body>
+    <h1>Debug JAR Import</h1>
+    <button onclick="checkSavedGames()">Ver jogos salvos</button>
+    <button onclick="clearGames()">Limpar jogos</button>
+    <pre id="output"></pre>
+
+    <script>
+        function checkSavedGames() {
+            const saved = localStorage.getItem('imported_games');
+            const output = document.getElementById('output');
+            if (!saved) {
+                output.textContent = 'Nenhum jogo importado encontrado';
+            } else {
+                try {
+                    const games = JSON.parse(saved);
+                    output.textContent = `Jogos encontrados: ${games.length}\n\n` + JSON.stringify(games.map(g => ({
+                        id: g.id,
+                        name: g.name,
+                        size: g.size,
+                        hasJarData: !!g.jarData
+                    })), null, 2);
+                } catch (e) {
+                    output.textContent = 'Erro ao ler jogos: ' + e.message;
+                }
+            }
+        }
+
+        function clearGames() {
+            localStorage.removeItem('imported_games');
+            document.getElementById('output').textContent = 'Jogos limpos!';
+        }
+
+        checkSavedGames();
+    </script>
+</body>
+</html>
