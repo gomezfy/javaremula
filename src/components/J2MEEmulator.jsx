@@ -49,6 +49,7 @@ const J2MEEmulator = forwardRef(({ jarData, gameName }, ref) => {
         <div id="top" style="display: none;"></div>
         <div class="topbutton" id="show" style="display: none;">Show</div>
         <div class="topbutton" id="hide" style="display: none;">Hide</div>
+        <div class="topbutton" id="exit" style="display: none;">Exit</div>
       `
       containerRef.current.innerHTML = template
       setDomReady(true)
@@ -57,9 +58,11 @@ const J2MEEmulator = forwardRef(({ jarData, gameName }, ref) => {
 
   useImperativeHandle(ref, () => ({
     sendKey: (keyCode) => {
-      if (runtimeReadyRef.current && window.js2me) {
+      if (runtimeReadyRef.current && window.js2me && window.js2me.sendKeyPressEvent) {
         window.js2me.sendKeyPressEvent(keyCode)
-        setTimeout(() => window.js2me.sendKeyReleaseEvent(keyCode), 100)
+        if (window.js2me.sendKeyReleasedEvent) {
+          setTimeout(() => window.js2me.sendKeyReleasedEvent(keyCode), 100)
+        }
       }
     },
     boot: async (arrayBuffer) => {
