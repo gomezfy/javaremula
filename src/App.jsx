@@ -35,12 +35,23 @@ function App() {
   }
   
   const toggleGame = (gameId) => {
+    const isImported = gameId.startsWith('imported_')
+    
     if (activeGames.includes(gameId)) {
       if (activeGames.length > 1) {
         setActiveGames(activeGames.filter(id => id !== gameId))
       }
     } else {
-      setActiveGames([...activeGames, gameId])
+      if (isImported) {
+        const otherImported = activeGames.filter(id => id.startsWith('imported_'))
+        if (otherImported.length > 0) {
+          setActiveGames([...activeGames.filter(id => !id.startsWith('imported_')), gameId])
+        } else {
+          setActiveGames([...activeGames, gameId])
+        }
+      } else {
+        setActiveGames([...activeGames, gameId])
+      }
     }
   }
   

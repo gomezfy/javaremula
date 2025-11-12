@@ -51,9 +51,7 @@ export async function ensureJs2meReady() {
         await loadScript(scriptSrc);
       }
       
-      window.dispatchEvent(new Event('load'));
-      
-      console.log('[js2me] Runtime loaded successfully');
+      console.log('[js2me] Runtime scripts loaded successfully');
       return true;
     } catch (error) {
       console.error('[js2me] Failed to load runtime:', error);
