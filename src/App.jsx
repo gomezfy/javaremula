@@ -5,7 +5,7 @@ import { JarParser } from './utils/jarParser'
 import './App.css'
 
 function App() {
-  const [currentGame, setCurrentGame] = useState('snake')
+  const [activeGames, setActiveGames] = useState(['snake'])
   const [builtInGames] = useState([
     { id: 'snake', name: 'Snake Classic', size: '64KB', builtin: true },
     { id: 'demo', name: 'Demo Game', size: '32KB', builtin: true }
@@ -21,18 +21,30 @@ function App() {
   
   const handleGameImported = (gameData) => {
     loadImportedGames()
-    setCurrentGame(gameData.id)
+    if (!activeGames.includes(gameData.id)) {
+      setActiveGames([...activeGames, gameData.id])
+    }
   }
   
   const handleDeleteGame = (gameId) => {
     if (confirm('Tem certeza que deseja remover este jogo?')) {
       JarParser.deleteGame(gameId)
       loadImportedGames()
-      if (currentGame === gameId) {
-        setCurrentGame('snake')
-      }
+      setActiveGames(activeGames.filter(id => id !== gameId))
     }
   }
+  
+  const toggleGame = (gameId) => {
+    if (activeGames.includes(gameId)) {
+      if (activeGames.length > 1) {
+        setActiveGames(activeGames.filter(id => id !== gameId))
+      }
+    } else {
+      setActiveGames([...activeGames, gameId])
+    }
+  }
+  
+  const isGameActive = (gameId) => activeGames.includes(gameId)
   
   useEffect(() => {
     loadImportedGames()
@@ -52,8 +64,8 @@ function App() {
             {gameList.map(game => (
               <div key={game.id} className="game-item-wrapper">
                 <button
-                  className={`game-item ${currentGame === game.id ? 'active' : ''}`}
-                  onClick={() => setCurrentGame(game.id)}
+                  className={`game-item ${isGameActive(game.id) ? 'active' : ''}`}
+                  onClick={() => toggleGame(game.id)}
                 >
                   {game.icon && (
                     <img src={game.icon} alt={game.name} className="game-icon" />
@@ -65,11 +77,15 @@ function App() {
                       <div className="game-vendor">{game.vendor}</div>
                     )}
                   </div>
+                  {isGameActive(game.id) && <span className="active-indicator">▶</span>}
                 </button>
                 {game.imported && (
                   <button
                     className="delete-game-btn"
-                    onClick={() => handleDeleteGame(game.id)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeleteGame(game.id)
+                    }}
                     title="Remover jogo"
                   >
                     🗑️
@@ -87,16 +103,37 @@ function App() {
           <div className="info-section">
             <h3>ℹ️ Como Usar</h3>
             <ul>
-              <li><strong>Setas:</strong> Mover cobra</li>
-              <li><strong>OK:</strong> Reiniciar após Game Over</li>
-              <li><strong>ESC (↩):</strong> Pausar/Despausar</li>
-              <li><strong>Números 2,4,6,8:</strong> Controles alternativos</li>
+              <li><strong>Clique nos jogos</strong> para abrir/fechar emuladores</li>
+              <li><strong>Múltiplos jogos:</strong> Abra vários ao mesmo tempo!</li>
+              <li><strong>Setas:</strong> Controlar o jogo</li>
+              <li><strong>OK:</strong> Selecionar/Reiniciar</li>
+              <li><strong>ESC (↩):</strong> Pausar/Voltar</li>
             </ul>
           </div>
         </aside>
 
         <main className="emulator-area">
-          <Phone gameType={currentGame} />
+          <div className="emulators-grid">
+            {activeGames.map(gameId => (
+              <div key={gameId} className="emulator-wrapper">
+                <div className="emulator-header">
+                  <span className="emulator-title">
+                    {gameList.find(g => g.id === gameId)?.name || gameId}
+                  </span>
+                  {activeGames.length > 1 && (
+                    <button
+                      className="close-emulator-btn"
+                      onClick={() => toggleGame(gameId)}
+                      title="Fechar emulador"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                <Phone gameType={gameId} />
+              </div>
+            ))}
+          </div>
         </main>
       </div>
 
