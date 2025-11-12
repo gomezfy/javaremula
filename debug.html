@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug - J2ME Emulator</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1e1e1e; color: #ccc; }
+        button { margin: 10px; padding: 10px 20px; cursor: pointer; }
+        pre { background: #2d2d2d; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        .section { margin: 20px 0; border: 1px solid #444; padding: 15px; border-radius: 5px; }
+        h2 { color: #4CAF50; }
+        .error { color: #f44336; }
+        .success { color: #4CAF50; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Debug - J2ME Emulator</h1>
+    
+    <div class="section">
+        <h2>localStorage Status</h2>
+        <button onclick="checkLocalStorage()">Verificar localStorage</button>
+        <button onclick="clearLocalStorage()">Limpar localStorage</button>
+        <pre id="localStorage-status">Clique em "Verificar localStorage"</pre>
+    </div>
+    
+    <div class="section">
+        <h2>Testar Upload de JAR</h2>
+        <input type="file" id="test-upload" accept=".jar" />
+        <button onclick="testUpload()">Testar Upload</button>
+        <pre id="upload-result">Selecione um arquivo .jar e clique em "Testar Upload"</pre>
+    </div>
+    
+    <div class="section">
+        <h2>Console Logs</h2>
+        <pre id="console-logs">Logs aparecerão aqui...</pre>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        const consoleLogs = [];
+        const originalLog = console.log;
+        const originalError = console.error;
+        
+        console.log = function(...args) {
+            consoleLogs.push('[LOG] ' + args.join(' '));
+            updateConsole();
+            originalLog.apply(console, args);
+        };
+        
+        console.error = function(...args) {
+            consoleLogs.push('[ERROR] ' + args.join(' '));
+            updateConsole();
+            originalError.apply(console, args);
+        };
+        
+        function updateConsole() {
+            document.getElementById('console-logs').textContent = consoleLogs.slice(-20).join('\n');
+        }
+        
+        function checkLocalStorage() {
+            const status = document.getElementById('localStorage-status');
+            try {
+                const imported = localStorage.getItem('imported_games');
+                const snakeSave = localStorage.getItem('snake_save');
+                
+                let result = '=== LocalStorage Status ===\n\n';
+                
+                result += 'Snake Save: ' + (snakeSave ? 'EXISTS' : 'NOT FOUND') + '\n\n';
+                
+                if (imported) {
+                    const games = JSON.parse(imported);
+                    result += 'Imported Games: ' + games.length + ' jogos encontrados\n\n';
+                    
+                    games.forEach((game, idx) => {
+                        result += `Jogo ${idx + 1}:\n`;
+                        result += `  ID: ${game.id}\n`;
+                        result += `  Nome: ${game.name}\n`;
+                        result += `  Tamanho: ${game.size || 'N/A'}\n`;
+                        result += `  JarData: ${Array.isArray(game.jarData) ? game.jarData.length + ' bytes' : 'INVALID'}\n`;
+                        result += `  Icon: ${game.icon ? 'YES' : 'NO'}\n\n`;
+                    });
+                    
+                    result += '\n=== Raw Data ===\n';
+                    result += imported.substring(0, 500) + '...';
+                } else {
+                    result += 'Imported Games: NENHUM JOGO IMPORTADO\n';
+                }
+                
+                status.textContent = result;
+                status.className = 'success';
+            } catch (error) {
+                status.textContent = 'ERRO: ' + error.message;
+                status.className = 'error';
+            }
+        }
+        
+        function clearLocalStorage() {
+            if (confirm('Tem certeza que deseja limpar o localStorage?')) {
+                localStorage.clear();
+                alert('localStorage limpo!');
+                checkLocalStorage();
+            }
+        }
+        
+        async function testUpload() {
+            const fileInput = document.getElementById('test-upload');
+            const result = document.getElementById('upload-result');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                result.textContent = 'Por favor, selecione um arquivo!';
+                return;
+            }
+            
+            result.textContent = 'Processando...\n';
+            console.log('Iniciando upload de:', file.name, file.size, 'bytes');
+            
+            try {
+                console.log('Lendo arquivo...');
+                const arrayBuffer = await file.arrayBuffer();
+                console.log('Arquivo lido:', arrayBuffer.byteLength, 'bytes');
+                
+                console.log('Carregando ZIP...');
+                const zip = await JSZip.loadAsync(arrayBuffer);
+                console.log('ZIP carregado:', Object.keys(zip.files).length, 'arquivos');
+                
+                console.log('Procurando MANIFEST...');
+                const manifestFile = zip.file('META-INF/MANIFEST.MF');
+                if (!manifestFile) {
+                    throw new Error('MANIFEST.MF não encontrado!');
+                }
+                
+                const manifestContent = await manifestFile.async('string');
+                console.log('MANIFEST lido:', manifestContent.length, 'chars');
+                
+                const lines = manifestContent.split(/\r?\n/);
+                let name = 'Unknown Game';
+                
+                for (const line of lines) {
+                    if (line.startsWith('MIDlet-Name:')) {
+                        name = line.split(':')[1].trim();
+                        break;
+                    }
+                }
+                
+                console.log('Nome do jogo:', name);
+                
+                const gameData = {
+                    id: 'imported_' + Date.now(),
+                    name: name,
+                    size: file.size,
+                    jarData: Array.from(new Uint8Array(arrayBuffer)),
+                    icon: null
+                };
+                
+                console.log('Salvando no localStorage...');
+                const existing = localStorage.getItem('imported_games');
+                const games = existing ? JSON.parse(existing) : [];
+                games.push(gameData);
+                
+                const jsonString = JSON.stringify(games);
+                console.log('JSON size:', jsonString.length, 'bytes');
+                
+                localStorage.setItem('imported_games', jsonString);
+                console.log('Salvo com sucesso!');
+                
+                result.textContent = `✅ SUCESSO!\n\nJogo: ${name}\nID: ${gameData.id}\nTamanho: ${file.size} bytes\n\nVerifique o localStorage acima.`;
+                result.className = 'success';
+                
+                checkLocalStorage();
+            } catch (error) {
+                console.error('Erro no upload:', error);
+                result.textContent = `❌ ERRO:\n\n${error.message}\n\nVeja o console para mais detalhes.`;
+                result.className = 'error';
+            }
+        }
+        
+        console.log('Debug page loaded');
+        checkLocalStorage();
+    </script>
+</body>
+</html>
