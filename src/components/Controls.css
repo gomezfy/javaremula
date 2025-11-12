@@ -1,0 +1,106 @@
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 50px);
+  grid-template-rows: repeat(3, 50px);
+  gap: 5px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.dpad-btn {
+  background: linear-gradient(145deg, #3d566e, #2c3e50);
+  border: none;
+  border-radius: 8px;
+  color: #ecf0f1;
+  font-size: 1.2rem;
+  font-weight: bold;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  transition: all 0.1s;
+}
+
+.dpad-btn:active {
+  background: linear-gradient(145deg, #2c3e50, #3d566e);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  transform: translateY(2px);
+}
+
+.dpad-up { grid-area: 1 / 2; }
+.dpad-left { grid-area: 2 / 1; }
+.dpad-center { 
+  grid-area: 2 / 2;
+  background: linear-gradient(145deg, #e74c3c, #c0392b);
+  font-size: 0.75rem;
+}
+.dpad-center:active {
+  background: linear-gradient(145deg, #c0392b, #e74c3c);
+}
+.dpad-right { grid-area: 2 / 3; }
+.dpad-down { grid-area: 3 / 2; }
+
+.action-buttons {
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+  margin: 10px 0;
+}
+
+.action-btn {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(145deg, #27ae60, #229954);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 1.5rem;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  transition: all 0.1s;
+}
+
+.action-btn:active {
+  background: linear-gradient(145deg, #229954, #27ae60);
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  transform: translateY(2px);
+}
+
+.numpad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.numpad-btn {
+  background: linear-gradient(145deg, #34495e, #2c3e50);
+  border: none;
+  border-radius: 5px;
+  color: #ecf0f1;
+  font-size: 1rem;
+  font-weight: bold;
+  padding: 12px;
+  box-shadow: 
+    0 3px 6px rgba(0, 0, 0, 0.3),
+    inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  transition: all 0.1s;
+}
+
+.numpad-btn:active {
+  background: linear-gradient(145deg, #2c3e50, #34495e);
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.3),
+    inset 0 1px 3px rgba(0, 0, 0, 0.5);
+  transform: translateY(2px);
+}
