@@ -16,7 +16,10 @@ Emulador web de jogos Java (J2ME) que recria a experiência nostálgica de jogar
 - ✅ Sistema de pontuação
 - ✅ Suporte para save states via localStorage
 - ✅ Controles responsivos para desktop e mobile
-- ✅ Upload de arquivos JAR (interface preparada)
+- ✅ **Importação de jogos JAR** - Sistema completo de upload
+- ✅ **Parser de arquivos JAR** - Extração de metadata e ícones
+- ✅ **Gerenciamento de jogos** - Adicionar e remover jogos importados
+- ✅ **Persistência** - Jogos salvos no localStorage com ArrayBuffer
 
 ## Arquitetura do Projeto
 
@@ -27,9 +30,12 @@ Emulador web de jogos Java (J2ME) que recria a experiência nostálgica de jogar
 │   ├── components/          # Componentes React
 │   │   ├── Phone.jsx        # Componente principal do celular
 │   │   ├── Display.jsx      # Tela do celular com canvas
-│   │   └── Controls.jsx     # Controles físicos (D-pad, numpad)
+│   │   ├── Controls.jsx     # Controles físicos (D-pad, numpad)
+│   │   └── JarUpload.jsx    # Sistema de upload de jogos JAR
 │   ├── games/               # Jogos do emulador
 │   │   └── Snake.js         # Jogo Snake clássico
+│   ├── utils/               # Utilitários
+│   │   └── jarParser.js     # Parser de arquivos JAR
 │   ├── engine/              # Motor de emulação J2ME
 │   ├── App.jsx              # Componente raiz
 │   └── main.jsx             # Entry point
@@ -43,6 +49,8 @@ Emulador web de jogos Java (J2ME) que recria a experiência nostálgica de jogar
 - **Renderização:** Canvas API nativa
 - **Estilos:** CSS puro (sem frameworks)
 - **Controles:** Event listeners nativos
+- **Parser JAR:** JSZip (processamento de arquivos ZIP/JAR)
+- **Persistência:** localStorage com serialização ArrayBuffer
 
 ### Componentes Principais
 
@@ -70,6 +78,24 @@ Motor do jogo Snake com:
 - Save/Load states totalmente funcional (recupera jogo mesmo após game over)
 - Cleanup correto de timers (sem memory leaks)
 
+#### 5. JarUpload.jsx
+Componente de upload de jogos JAR:
+- Interface drag-and-drop amigável
+- Validação de arquivos .jar
+- Feedback visual durante processamento
+- Mensagens de sucesso/erro
+- Integração com JarParser
+
+#### 6. jarParser.js (Utilitário)
+Parser completo de arquivos JAR/ZIP:
+- Extração de manifesto (META-INF/MANIFEST.MF)
+- Leitura de arquivos JAD para metadata
+- Extração automática de ícones PNG
+- Conversão de imagens para Data URLs
+- Serialização robusta para localStorage (ArrayBuffer ↔ Array)
+- Gerenciamento CRUD de jogos importados
+- Tratamento de erros e validações
+
 ## Como Jogar
 
 ### Controles do Teclado
@@ -91,6 +117,17 @@ Motor do jogo Snake com:
 - Saves são armazenados no localStorage do navegador
 
 ## Mudanças Recentes
+- **12/11/2025 - 18:53:** Sistema de importação de jogos JAR
+  - ✅ Criado parser completo de arquivos JAR usando JSZip
+  - ✅ Extração automática de metadata (MIDlet-Name, Vendor, Version)
+  - ✅ Suporte para extração de ícones PNG dos JARs
+  - ✅ Sistema de persistência robusto com localStorage
+  - ✅ Interface de upload com feedback visual
+  - ✅ Funcionalidade de remover jogos importados
+  - ✅ Corrigido bug crítico de corrupção de dados ao salvar múltiplos jogos
+  - ✅ Display de informações do jogo (nome, tamanho, vendor)
+  - ✅ Ícones dos jogos exibidos na lista
+
 - **12/11/2025 - 18:20:** Correção do bug de tremor no botão OK
   - ✅ Removida função de pausa do botão OK durante o jogo
   - ✅ Botão OK agora só reinicia após Game Over
