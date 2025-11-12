@@ -11,7 +11,6 @@ function Phone({ gameType, gameData }) {
   const [displayData, setDisplayData] = useState(null)
   const [hasSave, setHasSave] = useState(false)
   const [isJarGame, setIsJarGame] = useState(false)
-  const [jarLoading, setJarLoading] = useState(false)
   const [currentJarData, setCurrentJarData] = useState(null)
   const [currentGameName, setCurrentGameName] = useState(null)
 
@@ -26,6 +25,7 @@ function Phone({ gameType, gameData }) {
   useEffect(() => {
     const loadGame = async () => {
       const isImported = gameType && gameType.startsWith('imported_')
+      console.log('[Phone] Loading game, type:', gameType, 'isImported:', isImported)
       setIsJarGame(isImported)
       setCurrentJarData(null)
       setCurrentGameName(null)
@@ -33,19 +33,23 @@ function Phone({ gameType, gameData }) {
       if (isImported) {
         try {
           const savedGames = JarParser.getSavedGames()
+          console.log('[Phone] Saved games:', savedGames.length)
           const game = savedGames.find(g => g.id === gameType)
           
           if (game && game.jarData) {
-            console.log('[Phone] Found JAR game:', game.name)
+            console.log('[Phone] Found JAR game:', game.name, 'Size:', game.size)
+            console.log('[Phone] JAR data type:', typeof game.jarData, 'Length:', game.jarData.byteLength)
             setCurrentJarData(game.jarData)
             setCurrentGameName(game.name)
           } else {
-            console.error('[Phone] JAR game not found')
+            console.error('[Phone] JAR game not found for ID:', gameType)
+            console.error('[Phone] Available games:', savedGames.map(g => g.id))
           }
         } catch (error) {
           console.error('[Phone] Failed to load JAR data:', error)
         }
       } else if (gameType === 'snake') {
+        console.log('[Phone] Loading Snake game')
         const { SnakeGame } = await import('../games/Snake')
         const gameEngine = new SnakeGame()
         engineRef.current = gameEngine
@@ -71,24 +75,6 @@ function Phone({ gameType, gameData }) {
     }
   }, [gameType])
   
-  useEffect(() => {
-    const bootEmulator = async () => {
-      if (isJarGame && currentJarData && emulatorRef.current) {
-        setJarLoading(true)
-        try {
-          console.log('[Phone] Booting JAR:', currentGameName)
-          await emulatorRef.current.boot(currentJarData)
-          console.log('[Phone] JAR boot complete')
-        } catch (error) {
-          console.error('[Phone] Failed to boot JAR:', error)
-        } finally {
-          setJarLoading(false)
-        }
-      }
-    }
-    
-    bootEmulator()
-  }, [isJarGame, currentJarData, currentGameName])
 
   const handleKeyPress = (key) => {
     if (isJarGame && emulatorRef.current) {
@@ -134,12 +120,11 @@ function Phone({ gameType, gameData }) {
           
           {isJarGame ? (
             <div className="emulator-display">
-              {jarLoading && (
-                <div className="loading-overlay">
-                  <div className="loading-text">Carregando jogo...</div>
-                </div>
-              )}
-              <J2MEEmulator ref={emulatorRef} gameName={currentGameName || gameType} />
+              <J2MEEmulator 
+                ref={emulatorRef} 
+                jarData={currentJarData}
+                gameName={currentGameName || gameType} 
+              />
             </div>
           ) : (
             <Display data={displayData} />
